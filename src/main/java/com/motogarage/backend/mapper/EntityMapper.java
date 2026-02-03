@@ -48,6 +48,7 @@ public class EntityMapper {
         dto.setBrand(entity.getBrand());
         dto.setModel(entity.getModel());
         dto.setYear(entity.getYear());
+        dto.setDescription(entity.getDescription());
         dto.setPhotoUrl(entity.getPhotoUrl());
         if (entity.getUser() != null) {
             dto.setUserId(entity.getUser().getId());
