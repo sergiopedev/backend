@@ -117,15 +117,18 @@ spring.datasource.username=postgres
 spring.datasource.password=tu_contraseña
 
 # Hibernate Configuration
-spring.jpa.hibernate.ddl-auto=update
+spring.jpa.hibernate.ddl-auto=create-drop
 spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
 
 # Server Configuration
 server.port=8081
+
+# Payloads grandes (fotos en base64)
+server.tomcat.max-swallow-size=50MB
+spring.jackson.parser.max-string-length=50000000
 ```
 
-**Nota:** Ajusta la URL, puerto y credenciales según tu configuración local.
+**Nota:** `ddl-auto=create-drop` recrea las tablas en cada reinicio (los datos se pierden). Para persistencia entre reinicios, cambia a `update`. Ajusta la URL, puerto y credenciales según tu configuración local.
 
 ### 4. Instalar Dependencias
 
@@ -186,9 +189,10 @@ backend_pruebas/
 |--------|----------|-------------|
 | `GET` | `/api/users` | Obtener todos los usuarios |
 | `GET` | `/api/users/{id}` | Obtener usuario por ID |
-| `POST` | `/api/users` | Crear nuevo usuario |
+| `POST` | `/api/users` | Registrar nuevo usuario |
+| `POST` | `/api/users/login` | Iniciar sesión (email + password) |
 | `PUT` | `/api/users/{id}` | Actualizar usuario |
-| `DELETE` | `/api/users/{id}` | Eliminar usuario |
+| `DELETE` | `/api/users/{id}` | Eliminar usuario (cascada → motos → mods) |
 
 #### Ejemplo de Solicitud POST:
 
@@ -276,7 +280,10 @@ public class User {
     @Size(min = 6)
     private String password;                           // Contraseña
     
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @Column(columnDefinition = "TEXT")
+    private String photoUrl;                           // Foto de perfil (base64)
+    
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Motorcycle> myMotorcycles;            // Motos del usuario
 }
 ```
@@ -305,11 +312,16 @@ public class Motorcycle {
     @Size(max = 255)
     private String description;                        // Descripción
     
+    @NotBlank
+    @Column(columnDefinition = "TEXT")
+    private String photoUrl;                           // Foto de la moto (base64)
+    
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;                                 // Usuario propietario
     
-    @OneToMany(mappedBy = "motorcycle", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "motorcycle", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Mod> mods;                            // Modificaciones
 }
 ```
@@ -330,12 +342,12 @@ public class Mod {
     @NotBlank
     private String brandPiece;                         // Marca de la pieza
     
-    @NotBlank
     @URL
-    private String urlShop;                            // URL de la tienda
+    private String urlShop;                            // URL de la tienda (opcional)
     
     @ManyToOne
     @JoinColumn(name = "motorcycle_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Motorcycle motorcycle;                     // Motocicleta asociada
 }
 ```
@@ -349,15 +361,16 @@ public class Mod {
 El proyecto utiliza Hibernate para mapeo objeto-relacional con las siguientes configuraciones:
 
 ```properties
-# Generar/actualizar esquema automáticamente
-spring.jpa.hibernate.ddl-auto=update
+# Recrear esquema automáticamente al iniciar (datos se pierden)
+spring.jpa.hibernate.ddl-auto=create-drop
 
 # Mostrar sentencias SQL ejecutadas
 spring.jpa.show-sql=true
 
-# Usar dialecto de PostgreSQL
-spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+# El dialecto de PostgreSQL se detecta automáticamente
 ```
+
+> **Nota:** Para conservar datos entre reinicios, cambiar `create-drop` por `update`.
 
 ### Diagramas de Relaciones
 
@@ -432,7 +445,7 @@ El proyecto implementa validaciones exhaustivas en todos los modelos:
 
 - ✓ Name Piece: Obligatorio, cadena de texto
 - ✓ Brand Piece: Obligatorio, cadena de texto
-- ✓ URL Shop: Obligatorio, URL válida
+- ✓ URL Shop: Opcional; si se proporciona, debe ser una URL válida
 
 **Nota:** Las validaciones se aplican mediante Jakarta Validation (Jakarta Bean Validation).
 
@@ -528,7 +541,7 @@ Las contribuciones son bienvenidas. Por favor:
 
 ---
 
-**Última actualización:** 3 de febrero de 2026
+**Última actualización:** julio de 2025
 
 ---
 

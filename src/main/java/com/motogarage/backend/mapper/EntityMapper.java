@@ -15,6 +15,7 @@ public class EntityMapper {
         dto.setId(entity.getId());
         dto.setUsername(entity.getUsername());
         dto.setEmail(entity.getEmail());
+        dto.setPhotoUrl(entity.getPhotoUrl());
 
         if (entity.getMyMotorcycles() != null) {
             dto.setMyMotorcycles(entity.getMyMotorcycles().stream()

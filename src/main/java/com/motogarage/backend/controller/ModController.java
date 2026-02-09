@@ -1,9 +1,7 @@
 package com.motogarage.backend.controller;
 
 import com.motogarage.backend.dto.ModDTO;
-import com.motogarage.backend.model.Mod;
 import com.motogarage.backend.service.ModService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,12 +32,12 @@ public class ModController {
     }
 
     @PostMapping
-    public ResponseEntity<ModDTO> create(@Valid @RequestBody Mod mod) {
+    public ResponseEntity<ModDTO> create(@RequestBody ModDTO mod) {
         return new ResponseEntity<>(modService.save(mod), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ModDTO> update(@PathVariable Long id, @Valid @RequestBody Mod mod) {
+    public ResponseEntity<ModDTO> update(@PathVariable Long id, @RequestBody ModDTO mod) {
         return ResponseEntity.ok(modService.update(id, mod));
     }
 

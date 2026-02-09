@@ -3,7 +3,8 @@ package com.motogarage.backend.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Data;
-import org.hibernate.validator.constraints.URL;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.List;
 
@@ -29,14 +30,15 @@ public class Motorcycle {
     @Size(max = 255, message = "Description is too long")
     private String description;
 
-    @NotBlank(message = "Photo URL is required")
-    @URL(message = "Photo URL must be valid")
+    @NotBlank(message = "Photo is required")
+    @Column(columnDefinition = "TEXT")
     private String photoUrl;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
-    @OneToMany(mappedBy = "motorcycle", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "motorcycle", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Mod> mods;
 }

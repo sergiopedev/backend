@@ -25,6 +25,9 @@ public class User {
     @Size(min = 6, message = "Password must have at least 6 characters")
     private String password;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @Column(columnDefinition = "TEXT")
+    private String photoUrl;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Motorcycle> myMotorcycles;
 }

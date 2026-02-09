@@ -1,9 +1,7 @@
 package com.motogarage.backend.controller;
 
 import com.motogarage.backend.dto.MotorcycleDTO;
-import com.motogarage.backend.model.Motorcycle;
 import com.motogarage.backend.service.MotorcycleService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,12 +32,12 @@ public class MotorcycleController {
     }
 
     @PostMapping
-    public ResponseEntity<MotorcycleDTO> create(@Valid @RequestBody Motorcycle motorcycle) {
+    public ResponseEntity<MotorcycleDTO> create(@RequestBody MotorcycleDTO motorcycle) {
         return new ResponseEntity<>(motorcycleService.save(motorcycle), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<MotorcycleDTO> update(@PathVariable Long id, @Valid @RequestBody Motorcycle motorcycle) {
+    public ResponseEntity<MotorcycleDTO> update(@PathVariable Long id, @RequestBody MotorcycleDTO motorcycle) {
         return ResponseEntity.ok(motorcycleService.update(id, motorcycle));
     }
 

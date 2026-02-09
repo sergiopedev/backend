@@ -9,6 +9,8 @@ import com.motogarage.backend.repository.MotorcycleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
 @Service
@@ -19,26 +21,43 @@ public class ModService {
     private final MotorcycleRepository motorcycleRepository; // Necesitamos este
     private final EntityMapper entityMapper;
 
-    public ModDTO save(Mod mod) {
-        Motorcycle moto = motorcycleRepository.findById(mod.getMotorcycle().getId())
+    @Transactional
+    public ModDTO save(ModDTO dto) {
+        if (dto.getMotorcycleId() == null) {
+            throw new RuntimeException("motorcycleId es requerido");
+        }
+        Motorcycle moto = motorcycleRepository.findById(dto.getMotorcycleId())
                 .orElseThrow(() -> new RuntimeException("Moto no encontrada"));
+
+        Mod mod = new Mod();
+        mod.setNamePiece(dto.getNamePiece());
+        mod.setBrandPiece(dto.getBrandPiece());
+        String urlShop = dto.getUrlShop();
+        if (urlShop != null && urlShop.isBlank()) {
+            urlShop = null;
+        }
+        mod.setUrlShop(urlShop);
         mod.setMotorcycle(moto);
+
         Mod saved = modRepository.save(mod);
         return entityMapper.toModDTO(saved);
     }
 
+    @Transactional(readOnly = true)
     public List<ModDTO> findAll() {
         return modRepository.findAll().stream()
                 .map(entityMapper::toModDTO)
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public ModDTO findById(Long id) {
         Mod mod = modRepository.findById(id)
                 .orElse(null);
         return (mod != null) ? entityMapper.toModDTO(mod) : null;
     }
 
+    @Transactional
     public void delete(Long id) {
         if (!modRepository.existsById(id)) {
             throw new RuntimeException("Mod not found with id: " + id);
@@ -46,13 +65,18 @@ public class ModService {
         modRepository.deleteById(id);
     }
 
-    public ModDTO update(Long id, Mod modDetails) {
+    @Transactional
+    public ModDTO update(Long id, ModDTO modDetails) {
         Mod existingMod = modRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Mod not found with id: " + id));
 
         existingMod.setNamePiece(modDetails.getNamePiece());
         existingMod.setBrandPiece(modDetails.getBrandPiece());
-        existingMod.setUrlShop(modDetails.getUrlShop());
+        String urlShop = modDetails.getUrlShop();
+        if (urlShop != null && urlShop.isBlank()) {
+            urlShop = null;
+        }
+        existingMod.setUrlShop(urlShop);
 
         Mod updatedMod = modRepository.save(existingMod);
         return entityMapper.toModDTO(updatedMod);

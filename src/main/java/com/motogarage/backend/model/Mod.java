@@ -3,6 +3,8 @@ package com.motogarage.backend.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Data;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.validator.constraints.URL;
 
 @Entity
@@ -19,11 +21,11 @@ public class Mod {
     @NotBlank(message = "Part brand is required")
     private String brandPiece;
 
-    @NotBlank(message = "URL is required")
     @URL(message = "Shop URL must be valid")
     private String urlShop;
 
     @ManyToOne
     @JoinColumn(name = "motorcycle_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Motorcycle motorcycle;
 }
